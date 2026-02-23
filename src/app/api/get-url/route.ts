@@ -1,4 +1,4 @@
-import { getRecipe, postRecipe } from "@/lib/mealie";
+import { getRecipe, postRecipe, uploadRecipeImage } from "@/lib/mealie";
 import type { progressType, socialMediaResult } from "@/lib/types";
 import { generateRecipeFromAI, getTranscription } from "@/lib/ai";
 import { env } from "@/lib/constants";
@@ -59,14 +59,23 @@ async function handleRequest(
             socialMediaResult.images
         );
 
-        // Fallback: if LLM didn't populate image, use the thumbnail directly
-        if (recipe && !recipe.image && socialMediaResult.thumbnail) {
-            recipe.image = socialMediaResult.thumbnail;
+        // Strip the image URL from the recipe before posting — we will upload it directly
+        const thumbnailUrl = recipe?.image || socialMediaResult.thumbnail;
+        if (recipe) {
+            delete recipe.image;
         }
 
         console.log("Posting recipe to Mealie", recipe);
         const mealieResponse = await postRecipe(recipe);
-        const createdRecipe = await getRecipe(await mealieResponse);
+        const recipeSlug = await mealieResponse;
+
+        // Upload thumbnail directly to Mealie to avoid Instagram CDN 403s
+        if (thumbnailUrl && thumbnailUrl !== "notfound") {
+            console.log("Uploading thumbnail to Mealie:", thumbnailUrl);
+            await uploadRecipeImage(recipeSlug, thumbnailUrl);
+        }
+
+        const createdRecipe = await getRecipe(recipeSlug);
         console.log("Recipe created");
         progress.recipeCreated = true;
         if (isSse && controller) {
