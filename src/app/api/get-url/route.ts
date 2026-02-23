@@ -59,6 +59,11 @@ async function handleRequest(
             socialMediaResult.images
         );
 
+        // Fallback: if LLM didn't populate image, use the thumbnail directly
+        if (recipe && recipe.schema && !recipe.schema.image && socialMediaResult.thumbnail) {
+            recipe.schema.image = socialMediaResult.thumbnail;
+        }
+
         console.log("Posting recipe to Mealie", recipe);
         const mealieResponse = await postRecipe(recipe);
         const createdRecipe = await getRecipe(await mealieResponse);

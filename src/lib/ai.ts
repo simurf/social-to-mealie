@@ -125,6 +125,7 @@ export async function generateRecipeFromAI(
                         "Ensure ingredients and instructions are well-formatted and easy to follow.\n" +
                         "Correct any obvious errors or omissions.\n" +
                         "Output must be valid JSON-LD Schema.org Recipe format.\n" +
+                        "You MUST always populate the image field using the Thumbnail URL provided in the Metadata section. Never omit the image field if a thumbnail is provided.\n" +
                         "The keywords field should not be modified leave it as it comes, it they are not present dont include them. Only add relevant tags dont add tags that are not relevant to the recipe."
                 },
                 {
