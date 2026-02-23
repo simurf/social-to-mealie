@@ -60,8 +60,8 @@ async function handleRequest(
         );
 
         // Fallback: if LLM didn't populate image, use the thumbnail directly
-        if (recipe && recipe.schema && !recipe.schema.image && socialMediaResult.thumbnail) {
-            recipe.schema.image = socialMediaResult.thumbnail;
+        if (recipe && !recipe.image && socialMediaResult.thumbnail) {
+            recipe.image = socialMediaResult.thumbnail;
         }
 
         console.log("Posting recipe to Mealie", recipe);
@@ -115,13 +115,23 @@ export async function POST(req: Request) {
                 await handleRequest(url, tags, true, controller);
             },
         });
-
         return new Response(stream, {
             headers: {
                 "Content-Type": "text/event-stream",
                 "Cache-Control": "no-cache",
                 Connection: "keep-alive",
             },
+        });
+    }
+    return handleRequest(url, tags, false);
+}
+
+export async function GET(req: Request) {
+    const url = new URL(req.url).searchParams.get("url");
+    const tags = new URL(req.url).searchParams.getAll("tags");
+    if (!url) {
+        return new Response(JSON.stringify({ error: "URL is required" }), {
+            status: 400,
         });
     }
     return handleRequest(url, tags, false);
