@@ -44,13 +44,11 @@ ENV YTDLP_PATH=./yt-dlp
 RUN groupadd -g 1001 nodejs
 RUN useradd -r -u 1001 -g nodejs nextjs
 
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-COPY ./entrypoint.sh /app/entrypoint.sh
-
-RUN chown -R nextjs:nodejs /app
+COPY --chown=nextjs:nodejs --from=builder /app/public ./public
+COPY --chown=nextjs:nodejs --from=builder /app/.next ./.next
+COPY --chown=nextjs:nodejs --from=builder /app/node_modules ./node_modules
+COPY --chown=nextjs:nodejs --from=builder /app/package.json ./package.json
+COPY --chown=nextjs:nodejs ./entrypoint.sh /app/entrypoint.sh
 
 # If a build-time YTDLP_VERSION is provided, try downloading yt-dlp into the path.
 RUN if [ -n "$YTDLP_VERSION" ]; then \
